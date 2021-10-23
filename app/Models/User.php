@@ -42,8 +42,24 @@ class User extends Authenticatable
         'email_verified_at' => 'datetime',
     ];
 
+    protected $with = [
+        'roles',
+    ];
+
+    public function isSuperAdmin()
+    {
+        return $this->roles
+                ->where('name', '=', 'super_admin')
+                ->count() > 0;
+    }
+
     public function articles()
     {
         return $this->hasMany(Article::class);
+    }
+
+    public function roles()
+    {
+        return $this->belongsToMany(Role::class, 'user_role');
     }
 }

@@ -3,6 +3,7 @@
 namespace Tests\Feature\Article;
 
 use App\Models\Article;
+use App\Models\Role;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Foundation\Testing\WithFaker;
@@ -141,5 +142,39 @@ class ArticleTest extends TestCase
             ->deleteJson(self::URL.'/100');
 
         $response->assertStatus(Response::HTTP_NOT_FOUND);
+    }
+
+    public function test_게시판_관리자_게시글_삭제_성공()
+    {
+        $manager = User::factory()
+            ->has(Role::factory()->articleManager())
+            ->create();
+
+        $article = Article::factory()
+            ->for(User::factory())
+            ->create();
+
+        $response = $this
+            ->actingAs($manager)
+            ->deleteJson(self::URL."/{$article->id}");
+
+        $response->assertStatus(Response::HTTP_OK);
+    }
+
+    public function test_최고관리자_게시글_삭제_성공()
+    {
+        $superAdmin = User::factory()
+            ->has(Role::factory()->superAdmin())
+            ->create();
+
+        $article = Article::factory()
+            ->for(User::factory()->create())
+            ->create();
+
+        $response = $this
+            ->actingAs($superAdmin)
+            ->deleteJson(self::URL."/{$article->id}");
+
+        $response->assertStatus(Response::HTTP_OK);
     }
 }
